@@ -19,6 +19,7 @@ export default function TopNavbar() {
   const router = useRouter();
   const [time, setTime] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [userName, setUserName] = useState<string | null>(null);
 
   const meta = pageMeta[pathname] || { title: "NavSense", subtitle: "Smart University Dashboard" };
 
@@ -29,6 +30,18 @@ export default function TopNavbar() {
     };
     updateTime();
     const interval = setInterval(updateTime, 1000);
+
+    // Load user name
+    try {
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        setUserName(user.name || user.email?.split("@")[0] || null);
+      }
+    } catch {
+      // ignore
+    }
+
     return () => clearInterval(interval);
   }, []);
 
@@ -42,7 +55,7 @@ export default function TopNavbar() {
 
       {/* Search Bar */}
       <div className="top-navbar-search">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.5 }}>
           <circle cx="11" cy="11" r="8" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
@@ -61,13 +74,18 @@ export default function TopNavbar() {
           Operational
         </span>
         <span className="top-navbar-time">{time}</span>
-        <div 
-          className="top-navbar-avatar" 
+        {userName && (
+          <span style={{ fontSize: 13, color: "var(--text-secondary)", fontWeight: 500, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {userName}
+          </span>
+        )}
+        <div
+          className="top-navbar-avatar"
           onClick={() => router.push("/settings")}
           style={{ cursor: "pointer" }}
           title="Profile Settings"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
             <circle cx="12" cy="7" r="4" />
           </svg>

@@ -1,24 +1,47 @@
 import { supabase } from "@/lib/supabase";
 
 export async function getActiveAnomalies() {
+  // Try detailed relation join first
   const { data, error } = await supabase
     .from("anomalies")
-    .select("*, rooms(name, code)")
+    .select("*, rooms(name, code, buildings(name), floors(name, level))")
     .eq("is_active", true)
     .order("start_at", { ascending: false });
 
-  if (error) throw error;
+  if (error) {
+    console.warn("Detailed relations join failed, falling back to basic room join:", error.message);
+    const { data: fallbackData, error: fallbackError } = await supabase
+      .from("anomalies")
+      .select("*, rooms(name, code)")
+      .eq("is_active", true)
+      .order("start_at", { ascending: false });
+
+    if (fallbackError) throw fallbackError;
+    return fallbackData;
+  }
+
   return data;
 }
 
 export async function getAllAnomalies(limit = 100) {
   const { data, error } = await supabase
     .from("anomalies")
-    .select("*, rooms(name, code)")
+    .select("*, rooms(name, code, buildings(name), floors(name, level))")
     .order("start_at", { ascending: false })
     .limit(limit);
 
-  if (error) throw error;
+  if (error) {
+    console.warn("Detailed relations join failed, falling back to basic room join:", error.message);
+    const { data: fallbackData, error: fallbackError } = await supabase
+      .from("anomalies")
+      .select("*, rooms(name, code)")
+      .order("start_at", { ascending: false })
+      .limit(limit);
+
+    if (fallbackError) throw fallbackError;
+    return fallbackData;
+  }
+
   return data;
 }
 

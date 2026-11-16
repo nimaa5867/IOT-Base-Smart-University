@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken";
+import jwt, { type SignOptions } from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 
@@ -9,7 +9,10 @@ export interface TokenPayload {
   purpose?: string;
 }
 
-export const signToken = (payload: TokenPayload, expiresIn: string = "7d"): string =>
+export const signToken = (
+  payload: TokenPayload,
+  expiresIn: SignOptions["expiresIn"] = "7d"
+): string =>
   jwt.sign(payload, JWT_SECRET, { expiresIn });
 
 export const verifyToken = (token: string): TokenPayload =>

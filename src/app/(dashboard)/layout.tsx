@@ -2,6 +2,7 @@
 
 import Sidebar from "@/components/Sidebar";
 import TopNavbar from "@/components/TopNavbar";
+import ToastProvider from "@/components/ToastProvider";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -51,6 +52,8 @@ export default function AppLayout({
         <TopNavbar />
         <main className="main-content">{children}</main>
       </div>
+      {/* Global toast notifications — renders on top of all pages */}
+      <ToastProvider />
     </div>
   );
 }

@@ -32,16 +32,11 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", 19800);
 unsigned long lastNetworkPushMillis = 0;
 const unsigned long PUSH_INTERVAL = 3000; // Send data every 3 seconds
 
-unsigned int currentSignalMax = 0;
-unsigned int currentSignalMin = 4095;
-float maxDbSinceLastPush = 40.0;
-bool motionDetectedSinceLastPush = false;
-unsigned long lastSoundCalcMillis = 0;
+float maxDbSinceLastPush = 40.0;         // Peak dB in this 3-second window
+bool motionDetectedSinceLastPush = false; // Any PIR HIGH in this 3-second window
 
-// Short debounce so dashboard reflects current motion/noise (not a 3‑min hold)
-const unsigned long OCCUPANCY_DEBOUNCE_MS = 15000; // 15 seconds
-unsigned long lastOccupancyTime = 0;
-bool hasStartedOccupancy = false;
+// NOTE: Occupancy logic (2-second window + 5-second hold) is now computed
+// server-side from raw pir_detected + noise_level values sent each push.
 
 const char* wifiStatusText(wl_status_t status) {
   switch (status) {
@@ -160,30 +155,20 @@ void loop() {
     float h = dht.readHumidity();
     float t = dht.readTemperature();
     
-    // Read Light
+    // Read Light (RAW analog — server computes light_status: ldr < 2000 → ON)
     int ldr = analogRead(ldrPin);
-    bool lightOn = (ldr < 2000); 
-    
-    // Occupancy: motion or loud noise this interval; 15s debounce after activity stops
-    bool activityNow = motionDetectedSinceLastPush || maxDbSinceLastPush > 60;
-    if (activityNow) {
-      lastOccupancyTime = millis();
-      hasStartedOccupancy = true;
-    }
-    bool isOcc = activityNow;
-    if (!isOcc && hasStartedOccupancy) {
-      isOcc = (millis() - lastOccupancyTime < OCCUPANCY_DEBOUNCE_MS);
-    }
 
     // --- Serial Monitor Preview ---
     Serial.print(timeClient.getFormattedTime()); 
     Serial.print(" -> ");
-    Serial.print("Light("); Serial.print(lightOn ? "ON" : "OFF"); Serial.print(") , ");
-    Serial.print("PIR("); Serial.print(motionDetectedSinceLastPush ? "ON" : "OFF"); Serial.print(") , ");
+    Serial.print("LDR("); Serial.print(ldr); Serial.print(") , ");
+    Serial.print("PIR("); Serial.print(motionDetectedSinceLastPush ? "HIGH" : "LOW"); Serial.print(") , ");
     Serial.print(maxDbSinceLastPush, 1); Serial.print("dB , ");
     Serial.print(t, 1); Serial.print("°C -> ");
     
-    // --- Send to Next.js API ---
+    // --- Send RAW sensor values to Next.js API ---
+    // Server computes: is_occupied (PIR+Sound>60dB for 2s), light_status (ldr<2000),
+    //                  ac_status (temp<26°C), and fires AC_WASTE / LIGHT_WASTE alerts.
     if(WiFi.status() == WL_CONNECTED){
       WiFiClient client;
       HTTPClient http;
@@ -193,13 +178,13 @@ void loop() {
       http.setTimeout(15000); 
       
       StaticJsonDocument<256> doc;
-      doc["room_id"] = TARGET_ROOM_ID;
+      doc["room_id"]      = TARGET_ROOM_ID;
       if (isnan(t)) doc["temp"] = 0; else doc["temp"] = t; 
       if (isnan(h)) doc["humidity"] = 0; else doc["humidity"] = h;
       
-      doc["noise_level"] = maxDbSinceLastPush;
-      doc["is_occupied"] = isOcc;
-      doc["light_status"] = lightOn;
+      doc["noise_level"]  = maxDbSinceLastPush;          // Peak dB this 3-second window
+      doc["pir_detected"] = motionDetectedSinceLastPush; // RAW: any motion this window
+      doc["ldr_value"]    = ldr;                         // RAW: 0–4095 analog value
       
       String requestBody;
       serializeJson(doc, requestBody);

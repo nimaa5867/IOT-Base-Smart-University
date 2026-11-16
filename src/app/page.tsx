@@ -1,5 +1,7 @@
-import { redirect } from "next/navigation";
+"use client";
+
+import SplashScreen from "@/components/SplashScreen";
 
 export default function HomePage() {
-  redirect("/login");
+  return <SplashScreen autoRedirect={true} destination="/login" />;
 }

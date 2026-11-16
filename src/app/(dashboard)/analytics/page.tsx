@@ -71,7 +71,7 @@ export default function AnalyticsPage() {
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h2>Analytics</h2>
-          <p>AI-powered insights and historical trends</p>
+          <p>Insights and historical trends</p>
         </div>
         <div style={{ display: 'flex', gap: '8px', background: 'var(--bg-secondary)', padding: '4px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
           {[
@@ -142,8 +142,8 @@ export default function AnalyticsPage() {
                 <AreaChart data={data.trends} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorOccupancy" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--accent-purple)" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="var(--accent-purple)" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="var(--accent-purple)" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="var(--accent-purple)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
@@ -195,20 +195,20 @@ export default function AnalyticsPage() {
             <div style={{ minWidth: `${Math.max(data.roomStats.length * 60, 600)}px`, height: 350 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                data={data.roomStats}
-                margin={{ top: 20, right: 30, left: 20, bottom: 30 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-                <XAxis dataKey="name" stroke="var(--text-secondary)" angle={-45} textAnchor="end" height={60} />
-                <YAxis stroke="var(--accent-green)" label={{ value: 'Occupancy (%)', angle: -90, position: 'insideLeft', fill: 'var(--accent-green)' }} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px' }} 
-                  itemStyle={{ fontWeight: 600 }}
-                  cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                />
-                <Bar dataKey="occupancy" name="Occupancy (%)" fill="var(--accent-green)" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+                  data={data.roomStats}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 30 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                  <XAxis dataKey="name" stroke="var(--text-secondary)" angle={-45} textAnchor="end" height={60} />
+                  <YAxis stroke="var(--accent-green)" label={{ value: 'Occupancy (%)', angle: -90, position: 'insideLeft', fill: 'var(--accent-green)' }} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px' }}
+                    itemStyle={{ fontWeight: 600 }}
+                    cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                  />
+                  <Bar dataKey="occupancy" name="Occupancy (%)" fill="var(--accent-green)" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
         ) : (
